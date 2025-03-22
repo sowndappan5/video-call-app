@@ -1,22 +1,31 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Video Conference (Up to 10 Members)</title>
-    <link rel="stylesheet" href="style.css">
-    <script src="https://cdn.jsdelivr.net/npm/peerjs@1.3.1/dist/peerjs.min.js"></script>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Video Conference (Up to 10 Members)</title>
+  <link rel="stylesheet" href="style.css" />
+  <!-- Load PeerJS from CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/peerjs@1.3.1/dist/peerjs.min.js"></script>
 </head>
 <body>
-    <h1>Video Conference (Up to 10 Members)</h1>
-    <p id="myId">Your ID: Generating...</p>
-    
-    <input type="text" id="peerIdInput" placeholder="Enter Peer ID">
-    <button id="startCall">Start Call</button>
-    <button id="stopCall">Stop Call</button>
+  <h1>Video Conference (Up to 10 Members)</h1>
 
-    <div id="videoGrid"></div>
+  <!-- Display your unique Peer ID after "Start Call" -->
+  <p id="myId">Your ID: <em>Not started yet</em></p>
 
-    <script src="script.js"></script>
+  <!-- Input for remote Peer ID(s) -->
+  <input type="text" id="peerIdInput" placeholder="Enter Peer ID to call" />
+
+  <!-- Buttons to Start, Join, and Stop -->
+  <button id="startCall">Start Call</button>
+  <button id="joinCall">Join Call</button>
+  <button id="stopCall">Stop Call</button>
+
+  <!-- Container for all videos (yours + others) -->
+  <div id="videoGrid"></div>
+
+  <!-- Main Script -->
+  <script src="script.js"></script>
 </body>
 </html>
