@@ -1,71 +1,91 @@
-const peer = new Peer(); // Initialize PeerJS
-let peers = {}; // Store connected peers
+const videoGrid = document.getElementById("videoGrid");
+const startCallBtn = document.getElementById("startCall");
+const stopCallBtn = document.getElementById("stopCall");
+const myVideo = document.createElement("video");
+const myIdDisplay = document.getElementById("myId");
+const peerIdInput = document.getElementById("peerIdInput");
+
+myVideo.muted = true; // ✅ Prevents audio echo
+
 let myStream;
+let peers = {};
+let peer;
 
-// Display our PeerJS ID
-peer.on('open', id => {
-    document.getElementById("myId").textContent = id;
-    console.log("My Peer ID:", id);
-});
+// 🎥 Get user media (camera & mic)
+async function startCall() {
+    try {
+        myStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
 
-// Get user media (video + audio)
-navigator.mediaDevices.getUserMedia({ video: true, audio: true })
-    .then(stream => {
-        myStream = stream;
-        addVideoStream("myVideo", myStream); // Display my own video
-    })
-    .catch(error => console.error("Error accessing media devices:", error));
+        // ✅ Show own video immediately
+        addVideoStream("myVideo", myStream, true);
 
-// Function to connect to another peer
-function connectToPeer(peerId) {
-    if (peers[peerId]) return; // Prevent duplicate connections
+        peer = new Peer(); // Create PeerJS connection
+
+        peer.on("open", (id) => {
+            myIdDisplay.innerText = `Your ID: ${id}`;
+            peerIdInput.value = id;
+        });
+
+        // When someone calls, answer and send own video
+        peer.on("call", (call) => {
+            call.answer(myStream);
+            call.on("stream", (userVideoStream) => {
+                addVideoStream(call.peer, userVideoStream);
+            });
+        });
+
+    } catch (error) {
+        console.error("Error accessing media devices:", error);
+        alert("Please allow camera and microphone permissions.");
+    }
+}
+
+// 📞 Join call using peer ID
+function joinCall() {
+    const peerId = peerIdInput.value.trim();
+    if (!peerId) return alert("Enter a valid Peer ID!");
 
     const call = peer.call(peerId, myStream);
-    call.on('stream', userStream => addVideoStream(peerId, userStream)); // Show other user's video
-    call.on('close', () => removeVideo(peerId)); // Remove video on disconnect
-    peers[peerId] = call; // Store the connection
+
+    call.on("stream", (userVideoStream) => {
+        addVideoStream(peerId, userVideoStream);
+    });
+
+    call.on("close", () => {
+        document.getElementById(peerId)?.remove();
+    });
+
+    peers[peerId] = call;
 }
 
-// Handle incoming calls
-peer.on('call', call => {
-    if (peers[call.peer]) return; // Prevent duplicate calls
-
-    call.answer(myStream); // Answer the call with my stream
-    call.on('stream', userStream => addVideoStream(call.peer, userStream)); // Show other user's video
-    call.on('close', () => removeVideo(call.peer)); // Remove video on disconnect
-    peers[call.peer] = call; // Store connection
-});
-
-// Function to add video stream (Prevents duplicates)
-function addVideoStream(peerId, stream) {
-    if (document.getElementById(peerId)) return; // Prevent duplicate video elements
-
-    const video = document.createElement("video");
-    video.id = peerId;
-    video.srcObject = stream;
-    video.autoplay = true;
-    document.getElementById("videoGrid").appendChild(video);
-}
-
-// Function to remove video when a peer disconnects
-function removeVideo(peerId) {
-    const video = document.getElementById(peerId);
-    if (video) video.remove();
-}
-
-// Start Call button
-document.getElementById("startCall").addEventListener("click", () => {
-    const peerId = document.getElementById("connectId").value;
-    if (peerId) {
-        connectToPeer(peerId);
-    } else {
-        alert("Enter a Peer ID to connect!");
+// ❌ Stop call
+function stopCall() {
+    myStream.getTracks().forEach(track => track.stop()); // Stop video & audio
+    for (let peerId in peers) {
+        peers[peerId].close();
+        document.getElementById(peerId)?.remove();
     }
-});
+    myVideo.remove(); // Remove self video
+}
 
-// Stop Call button
-document.getElementById("stopCall").addEventListener("click", () => {
-    Object.values(peers).forEach(call => call.close()); // Close all connections
-    myStream.getTracks().forEach(track => track.stop()); // Stop camera/mic
-    document.getElementById("videoGrid").innerHTML = ""; // Clear videos
-});
+// 🎥 Add video stream to the grid
+function addVideoStream(peerId, stream, isSelf = false) {
+    let video = document.getElementById(peerId);
+
+    if (!video) {
+        video = document.createElement("video");
+        video.id = peerId;
+        video.autoplay = true;
+        videoGrid.appendChild(video);
+    }
+
+    video.srcObject = stream;
+
+    if (isSelf) {
+        video.muted = true; // ✅ Mute self to prevent echo
+    }
+}
+
+// 🎯 Event Listeners
+startCallBtn.addEventListener("click", startCall);
+stopCallBtn.addEventListener("click", stopCall);
