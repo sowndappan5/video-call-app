@@ -3,17 +3,25 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Simple Video Call</title>
-    <link rel="stylesheet" href="style.css">
+    <title>Video Conference</title>
+    <script src="https://unpkg.com/peerjs@1.3.1/dist/peerjs.min.js"></script>
+    <style>
+        video { width: 200px; margin: 5px; border: 2px solid black; }
+        #videoGrid { display: flex; flex-wrap: wrap; }
+    </style>
 </head>
 <body>
-    <h1>Video Call</h1>
-    <div id="video-container">
-        <video id="myVideo" autoplay playsinline></video>
-        <video id="peerVideo" autoplay playsinline></video>
-    </div>
-    <button id="callBtn">Start Call</button>
-    <script src="https://cdn.jsdelivr.net/npm/peerjs@1.3.1/dist/peerjs.min.js"></script>
+    <h2>Video Conference (Up to 10 Members)</h2>
+    
+    <p>Your ID: <span id="myId">Generating...</span></p>
+    
+    <video id="myVideo" autoplay muted></video>
+    <div id="videoGrid"></div>
+
+    <input type="text" id="connectId" placeholder="Enter Peer ID to join">
+    <button id="startCall">Start Call</button>
+    <button id="stopCall">Stop Call</button>
+
     <script src="script.js"></script>
 </body>
 </html>
